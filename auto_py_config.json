@@ -1,0 +1,22 @@
+{
+    "version": "auto-py-to-exe-configuration_v1",
+    "pyinstaller_path": "python -m PyInstaller",
+    "file_name": "reverse_pdf_gui.py",
+    "onefile": true,
+    "console": false,
+    "icon_file": "pdf_reverser.png",
+    "name": "PDF页面顺序反转工具",
+    "clean_build": true,
+    "additional_files": {
+        "pdf_reverser.png": "pdf_reverser.png"
+    },
+    "hidden_imports": [
+        "customtkinter",
+        "tkinter",
+        "PIL",
+        "PIL._tkinter_finder"
+    ],
+    "datas": [
+        ["pdf_reverser.png", "."]
+    ]
+} 
