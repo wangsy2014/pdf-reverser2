@@ -25,52 +25,70 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install customtkinter==5.2.2
+        pip install PyPDF2==3.0.1
+        pip install pillow==10.2.0
         pip install pyinstaller
     
     - name: Generate icon
-      run: python pdf_icon.py
+      run: |
+        python pdf_icon.py
+        if (-not (Test-Path "pdf_reverser.png")) {
+          throw "Icon generation failed"
+        }
     
     - name: Build executable
+      shell: pwsh
       run: |
-        pyinstaller --name="PDF页面顺序反转工具" `
-                   --windowed `
-                   --onefile `
-                   --icon=pdf_reverser.png `
-                   --add-data="pdf_reverser.png;." `
-                   --hidden-import=customtkinter `
-                   --hidden-import=tkinter `
-                   --hidden-import=PIL `
-                   --hidden-import=PIL._tkinter_finder `
-                   --collect-all=customtkinter `
-                   --clean `
-                   reverse_pdf_gui.py
+        pyinstaller `
+          --name="PDF页面顺序反转工具" `
+          --windowed `
+          --onefile `
+          --icon="pdf_reverser.png" `
+          --add-data="pdf_reverser.png;." `
+          --hidden-import=customtkinter `
+          --hidden-import=tkinter `
+          --hidden-import=PIL `
+          --hidden-import=PIL._tkinter_finder `
+          --collect-all=customtkinter `
+          --clean `
+          reverse_pdf_gui.py
+    
+    - name: Verify build
+      shell: pwsh
+      run: |
+        if (-not (Test-Path "dist/PDF页面顺序反转工具.exe")) {
+          throw "Build failed - executable not found"
+        }
     
     - name: Create release package
       shell: pwsh
       run: |
         New-Item -ItemType Directory -Path "PDF页面顺序反转工具" -Force
         New-Item -ItemType Directory -Path "PDF页面顺序反转工具\程序" -Force
+        
         Copy-Item "dist\PDF页面顺序反转工具.exe" -Destination "PDF页面顺序反转工具\程序\"
         Copy-Item "pdf_reverser.png" -Destination "PDF页面顺序反转工具\程序\"
         
-        @"
-        PDF页面顺序反转工具 v1.0
+        $content = @"
+PDF页面顺序反转工具 v1.0
 
-        功能说明：
-        将PDF文件的页面顺序反转，从最后一页到第一页重新排序。
+功能说明：
+将PDF文件的页面顺序反转，从最后一页到第一页重新排序。
 
-        使用方法：
-        1. 运行 程序\PDF页面顺序反转工具.exe
-        2. 点击"浏览"选择要处理的PDF文件
-        3. 点击"开始转换"
-        4. 等待处理完成
+使用方法：
+1. 运行 程序\PDF页面顺序反转工具.exe
+2. 点击"浏览"选择要处理的PDF文件
+3. 点击"开始转换"
+4. 等待处理完成
 
-        注意事项：
-        - 原文件不会被修改
-        - 新文件会保存在原文件相同目录下
-        - 新文件名格式：原文件名_reversed.pdf
-        "@ | Out-File -FilePath "PDF页面顺序反转工具\使用说明.txt" -Encoding utf8
+注意事项：
+- 原文件不会被修改
+- 新文件会保存在原文件相同目录下
+- 新文件名格式：原文件名_reversed.pdf
+"@
+        
+        $content | Out-File -FilePath "PDF页面顺序反转工具\使用说明.txt" -Encoding utf8
         
         Compress-Archive -Path "PDF页面顺序反转工具" -DestinationPath "PDF页面顺序反转工具.zip" -Force
     
