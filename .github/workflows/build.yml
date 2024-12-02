@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write
     
     steps:
     - uses: actions/checkout@v4
@@ -34,8 +36,26 @@ jobs:
       run: |
         pyinstaller --name="PDF页面顺序反转工具" --windowed --onefile --icon=pdf_reverser.png --add-data="pdf_reverser.png;." --hidden-import=customtkinter --hidden-import=tkinter --hidden-import=PIL --collect-all=customtkinter reverse_pdf_gui.py
     
+    - name: Create Release Package
+      run: |
+        mkdir PDF页面顺序反转工具
+        copy dist\PDF页面顺序反转工具.exe PDF页面顺序反转工具\
+        Compress-Archive -Path PDF页面顺序反转工具 -DestinationPath PDF页面顺序反转工具.zip
+    
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: PDF页面顺序反转工具
-        path: dist/PDF页面顺序反转工具.exe
+        path: PDF页面顺序反转工具.zip
+    
+    - name: Create Release
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.run_number }}
+        name: Release v${{ github.run_number }}
+        files: PDF页面顺序反转工具.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
