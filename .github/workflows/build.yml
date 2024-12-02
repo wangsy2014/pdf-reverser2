@@ -31,6 +31,7 @@ jobs:
         pip install pyinstaller
     
     - name: Generate icon
+      shell: pwsh
       run: |
         python pdf_icon.py
         if (-not (Test-Path "pdf_reverser.png")) {
@@ -40,19 +41,7 @@ jobs:
     - name: Build executable
       shell: pwsh
       run: |
-        pyinstaller `
-          --name="PDF页面顺序反转工具" `
-          --windowed `
-          --onefile `
-          --icon="pdf_reverser.png" `
-          --add-data="pdf_reverser.png;." `
-          --hidden-import=customtkinter `
-          --hidden-import=tkinter `
-          --hidden-import=PIL `
-          --hidden-import=PIL._tkinter_finder `
-          --collect-all=customtkinter `
-          --clean `
-          reverse_pdf_gui.py
+        pyinstaller --name="PDF页面顺序反转工具" --windowed --onefile --icon="pdf_reverser.png" --add-data="pdf_reverser.png;." --hidden-import=customtkinter --hidden-import=tkinter --hidden-import=PIL --hidden-import=PIL._tkinter_finder --collect-all=customtkinter --clean reverse_pdf_gui.py
     
     - name: Verify build
       shell: pwsh
@@ -66,11 +55,9 @@ jobs:
       run: |
         New-Item -ItemType Directory -Path "PDF页面顺序反转工具" -Force
         New-Item -ItemType Directory -Path "PDF页面顺序反转工具\程序" -Force
-        
         Copy-Item "dist\PDF页面顺序反转工具.exe" -Destination "PDF页面顺序反转工具\程序\"
         Copy-Item "pdf_reverser.png" -Destination "PDF页面顺序反转工具\程序\"
-        
-        $content = @"
+        Set-Content -Path "PDF页面顺序反转工具\使用说明.txt" -Value @"
 PDF页面顺序反转工具 v1.0
 
 功能说明：
@@ -86,10 +73,7 @@ PDF页面顺序反转工具 v1.0
 - 原文件不会被修改
 - 新文件会保存在原文件相同目录下
 - 新文件名格式：原文件名_reversed.pdf
-"@
-        
-        $content | Out-File -FilePath "PDF页面顺序反转工具\使用说明.txt" -Encoding utf8
-        
+"@ -Encoding UTF8
         Compress-Archive -Path "PDF页面顺序反转工具" -DestinationPath "PDF页面顺序反转工具.zip" -Force
     
     - name: Upload artifact
